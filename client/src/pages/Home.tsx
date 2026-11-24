@@ -1,25 +1,77 @@
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import { Streamdown } from 'streamdown';
+import { useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowUpRight, Check, ChevronDown, CircleUserRound, MessageCircle, Pause, Play, Sparkles, Users } from "lucide-react";
 
-/**
- * All content in this page are only for example, replace with your own feature implementation
- * When building pages, remember your instructions in Frontend Workflow, Frontend Best Practices, Design Guide and Common Pitfalls
- */
+const photos = [
+  "https://images.unsplash.com/photo-1547587091-f883cf8f0c12?auto=format&fit=crop&w=1600&q=85",
+  "https://images.unsplash.com/photo-1548382131-e0ebb1f0cdea?auto=format&fit=crop&w=1600&q=85",
+  "https://images.unsplash.com/photo-1615717146113-495e481c17c9?auto=format&fit=crop&w=1600&q=85",
+  "https://images.unsplash.com/photo-1670095044002-3b45b6ad8a01?auto=format&fit=crop&w=1600&q=85",
+  "https://images.unsplash.com/photo-1768258341329-0b04044a7876?auto=format&fit=crop&w=1600&q=85",
+  "https://images.unsplash.com/photo-1783315943625-6c00dc4b265b?auto=format&fit=crop&w=1600&q=85",
+];
+
+const roles = ["Independent designers", "Growing teams", "Creative studios", "Design partners", "Brand builders", "Side projects"];
+const faqs = [
+  ["What can I make with Sparkspace?", "Start with whatever is on your mind: a brand direction, a product idea, a presentation, or a collection of references. Sparkspace is a shared place for bringing the pieces together."],
+  ["Can I work with people outside my team?", "Yes. Invite collaborators to a project and choose whether they can comment, edit, or simply take a look. The controls stay close to the work."],
+  ["Do I need to install anything?", "No. This demo runs right in your browser. Explore the canvas, try feedback controls, and switch between versions without an account or download."],
+  ["What happens when I create a workspace here?", "You will see a local preview with the name you choose. Nothing is sent or saved to a server, and refreshing the page resets the example."],
+  ["Is Sparkspace a real product?", "Sparkspace is a fictional collaborative design tool presented as a reusable website concept. The projects, people, and conversations are illustrative."],
+  ["Can I adapt this to my own idea?", "Absolutely. The page is organized into independent sections with shared design tokens, editable copy, and replaceable imagery."],
+];
+
+function Pill({ children }: { children: React.ReactNode }) { return <span className="pill">{children}</span>; }
+function DemoButton({ children, onClick, dark = false }: { children: React.ReactNode; onClick?: () => void; dark?: boolean }) { return <button onClick={onClick} className={`button ${dark ? "button-dark" : ""}`}>{children}<ArrowUpRight size={15} /></button>; }
+
 export default function Home() {
-  // If theme is switchable in App.tsx, we can implement theme toggling like this:
-  // const { theme, toggleTheme } = useTheme();
+  const [paused, setPaused] = useState(false);
+  const [workspaceTab, setWorkspaceTab] = useState<"solo" | "team">("solo");
+  const [projectFilter, setProjectFilter] = useState("All");
+  const [faq, setFaq] = useState<number | null>(null);
+  const [notice, setNotice] = useState("");
+  const [step, setStep] = useState(0);
+  const [email, setEmail] = useState("");
 
-  return (
-    <div className="min-h-screen flex flex-col">
-      <main>
-        {/* Example: lucide-react for icons */}
-        <Loader2 className="animate-spin" />
-        Example Page
-        {/* Example: Streamdown for markdown rendering */}
-        <Streamdown>Any **markdown** content</Streamdown>
-        <Button variant="default">Example Button</Button>
-      </main>
-    </div>
-  );
+  const projects = useMemo(() => [
+    { name: "Still Form", type: "Brand direction", category: "Brand", image: photos[0], copy: "A visual identity for considered objects." },
+    { name: "Common Ground", type: "Campaign concept", category: "Ideas", image: photos[1], copy: "A campaign built around a shared place." },
+    { name: "Between the Lines", type: "Editorial collection", category: "Presentations", image: photos[2], copy: "An editorial cover for everyday observations." },
+    { name: "Look Again", type: "Photo essay", category: "Ideas", image: photos[4], copy: "A photographic study in light and space." },
+  ].filter((p) => projectFilter === "All" || p.category === projectFilter), [projectFilter]);
+
+  const toast = (message: string) => { setNotice(message); window.setTimeout(() => setNotice(""), 2600); };
+  const submit = (e: React.FormEvent) => { e.preventDefault(); toast(email ? `A little space is ready for ${email}.` : "Try adding your email first."); };
+
+  return <div className="site-shell">
+    <header className="nav"><a className="wordmark" href="#top"><span className="mark">✳</span> sparkspace</a><nav><a href="#why">Why Sparkspace</a><a href="#process">The process</a><a href="#features">Features</a><a href="#plans">Plans</a></nav><a className="nav-cta" href="#workspace">Start creating <ArrowUpRight size={15}/></a></header>
+    <main id="top">
+      <section className="hero section-pad">
+        <div className="hero-copy"><Pill><Sparkles size={13}/> A shared space for good ideas <ArrowUpRight size={13}/></Pill><h1>Create. Share. Refine.<br/><em>Good things, together.</em></h1><p>Bring your ideas, your people, and your next big thing into one beautifully simple workspace.</p><form className="inline-form" onSubmit={submit}><input aria-label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Your email goes here"/><DemoButton dark>Start creating</DemoButton></form><small>A little preview. No account needed. No email sent.</small><div className="mini-people"><div className="avatars"><img src={photos[2]}/><img src={photos[4]}/><span>you</span></div><strong>For the way you create.</strong> Solo, or together.</div></div>
+        <div className="hero-art"><div className="art-frame"><img src={photos[0]}/><div className="art-top"><Pill>Forma / Visual direction</Pill><Pill>Exploration 04</Pill></div><div className="art-title">A study in simplicity.</div><span className="cursor-tag">Maya</span><div className="art-bottom"><span>● In this together</span><span><Users size={13}/> 3 people. One shared canvas. <Check size={13}/> Saved</span></div></div><motion.div className="comment-card" animate={paused ? {} : { y: [0, -8, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}><div><img src={photos[4]}/><b>Maya</b><small>just now</small></div><p>A little more room to breathe. This is the one.</p><button onClick={() => toast("Comment resolved locally")}>Resolve comment</button></motion.div></div>
+      </section>
+
+      <section className="intro section-pad" id="why"><h2>Less getting in the way.<br/><em>More getting carried away.</em></h2><p>Good ideas need room to grow. We give you a simpler place to think, make, and move them forward.</p><div className="feature-grid"><div><span>01</span><h3>One place to find your flow</h3><p>Ideas, files, and the latest version. Keep it all together, so you can get back to making.</p></div><div><span>02</span><h3>Feedback that moves you forward</h3><p>Put the conversation right on the canvas. Less explaining where. More exploring what’s next.</p></div><div><span>03</span><h3>Space to make it your own</h3><p>Start with a blank canvas or a little inspiration. Work your way, with the people you choose.</p></div></div></section>
+
+      <section className="roles-section"><div className="section-pad"><h2>For every creative mind.</h2><p>However you make, there is room here.</p></div><div className={`marquee ${paused ? "paused" : ""}`}><div>{roles.concat(roles).map((r,i)=><span key={i}><img src={photos[i%photos.length]}/>{r}</span>)}</div></div><div className={`marquee reverse ${paused ? "paused" : ""}`}><div>{[...roles].reverse().concat([...roles].reverse()).map((r,i)=><span key={i}><img src={photos[(i+2)%photos.length]}/>{r}</span>)}</div></div></section>
+
+      <section className="workspace section-pad" id="features"><div className="section-kicker">GOOD IDEAS NEED A LITTLE ROOM TO GROW.</div><div className="section-heading"><h2>From the first thought<br/><em>to the version you love.</em></h2><p>Everything belongs in the same place.</p></div><div className="tabs"><button className={workspaceTab === "solo" ? "active" : ""} onClick={() => setWorkspaceTab("solo")}>For individuals</button><button className={workspaceTab === "team" ? "active" : ""} onClick={() => setWorkspaceTab("team")}>For teams</button></div><AnimatePresence mode="wait"><motion.div key={workspaceTab} className="workspace-card" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }}><div className="canvas"><div className="canvas-label">{workspaceTab === "solo" ? "A place for your next good idea." : "Let the right people in."}</div><img src={workspaceTab === "solo" ? photos[0] : photos[2]}/><div className="canvas-note"><b>{workspaceTab === "solo" ? "Little things, collected" : "A little outside perspective."}</b><small>{workspaceTab === "solo" ? "Your inspiration board" : "Project access"}</small></div></div><div className="canvas-side"><h3>{workspaceTab === "solo" ? "Collect the references." : "Share a work in progress."}</h3><p>{workspaceTab === "solo" ? "Follow a hunch. Give your ideas room to find their shape." : "Invite someone whose perspective you trust, with a little control over who sees what."}</p><div className="side-list"><div><CircleUserRound/><span><b>You</b><small>Your personal workspace · Owner</small></span><Check/></div><div><MessageCircle/><span><b>{workspaceTab === "solo" ? "A fresh pair of eyes" : "Alex Lee"}</b><small>{workspaceTab === "solo" ? "Ready when you are" : "Can comment"}</small></span><ArrowUpRight/></div></div><button className="quiet-button" onClick={() => toast("Invite controls opened locally")}>{workspaceTab === "solo" ? "Start collecting" : "Only invited people"} <ArrowUpRight size={14}/></button></div></motion.div></AnimatePresence></section>
+
+      <section className="process section-pad" id="process"><div className="process-copy"><div className="section-kicker">A GOOD IDEA TAKES A FEW TURNS.</div><h2>Try something.<br/><em>You can come back.</em></h2><p>Keep the happy accidents and the paths not taken. Your progress always has a place.</p><div className="step-tabs">{["Collect","Discuss","Present"].map((s,i)=><button className={step===i?"active":""} key={s} onClick={()=>setStep(i)}><span>0{i+1}</span>{s}</button>)}</div></div><div className="version-card"><img src={photos[step===1?3:step===2?4:0]}/><div className="version-overlay"><Pill>Viewing version 0{step+1}</Pill><h3>{["A working thought","A little more breathing room","Ready to present"][step]}</h3><p>{["Less noise. More room to feel.","One useful thought, right beside the work.","Bring the whole story into focus."][step]}</p><button onClick={()=>toast("Version approved locally")}>Approve version <Check size={14}/></button></div></div></section>
+
+      <section className="quote section-pad"><div><div className="section-kicker">BETTER WITH ANOTHER PERSPECTIVE.</div><h2>Share the draft while it’s still taking shape.</h2><p>A fresh pair of eyes can take it somewhere you hadn’t imagined. Invite someone in, leave a thought beside the work, and pick up the conversation when it suits you both.</p><a href="#workspace" className="text-link">Explore the workflow <ArrowUpRight size={15}/></a></div><img src={photos[2]} /></section>
+
+      <section className="projects section-pad"><div className="section-heading"><div><div className="section-kicker">A FEW STARTING POINTS</div><h2>Find your starting point.</h2></div><p>Four projects to open, explore, and take in your own direction.</p></div><div className="filter-row">{["All","Brand","Ideas","Presentations"].map(f=><button className={projectFilter===f?"active":""} onClick={()=>setProjectFilter(f)} key={f}>{f}</button>)}<span>{projects.length} projects shown.</span></div><div className="project-grid">{projects.map((p)=><button className="project-card" key={p.name} onClick={()=>toast(`${p.name} preview opened locally`)}><img src={p.image}/><div className="project-meta"><span>{p.type}</span><ArrowUpRight size={15}/></div><h3>{p.name}</h3><p>{p.copy}</p></button>)}</div></section>
+
+      <section className="plans section-pad" id="plans"><div className="section-heading"><h2>A fit for the way<br/><em>you work.</em></h2><p>Make something on your own.<br/>Or bring your people along.</p></div><div className="plan-grid"><div className="plan"><div><Pill>Personal</Pill><h3>Your own projects, collected references, and feedback from the people you invite.</h3></div><div><strong>Free</strong><small>For your individual workspace</small><button onClick={()=>document.getElementById("workspace")?.scrollIntoView({behavior:"smooth"})}>Choose Personal <ArrowUpRight size={15}/></button></div></div><div className="plan dark-plan"><div><Pill>Together</Pill><h3>Shared projects, reusable starting points, and permissions that keep your team in sync.</h3></div><div><strong>$14</strong><small>Per person, per month</small><button onClick={()=>document.getElementById("workspace")?.scrollIntoView({behavior:"smooth"})}>Choose Together <ArrowUpRight size={15}/></button></div></div></div></section>
+
+      <section className="workspace-form section-pad" id="workspace"><div className="form-copy"><div className="section-kicker">YOUR NEXT GOOD IDEA DESERVES A LITTLE SPACE.</div><h2>A fresh start.<br/><em>Make it yours.</em></h2><p>Try a little space for your next big thing.</p></div><form onSubmit={submit} className="big-form"><div className="two-inputs"><label>Your name<input placeholder="First name"/></label><label>Last name<input placeholder="Last name"/></label></div><label>Email address<input type="email" placeholder="you@yourstudio.com" value={email} onChange={e=>setEmail(e.target.value)}/></label><label>What will you call your workspace?<input placeholder="A very good idea"/></label><fieldset><legend>How do you like to create?</legend><label><input type="radio" name="mode" defaultChecked/> On my own, with room to explore</label><label><input type="radio" name="mode"/> Together, with a team or a few friends</label></fieldset><DemoButton dark>Create a little space</DemoButton><small>A local demo. No emails sent. No account created.</small></form></section>
+
+      <section className="faq section-pad"><div className="section-kicker">A FEW GOOD ANSWERS</div><h2>Questions, meet<br/><em>clear answers.</em></h2><div className="faq-list">{faqs.map(([q,a],i)=><div className={`faq-item ${faq===i?"open":""}`} key={q}><button onClick={()=>setFaq(faq===i?null:i)}><span>{q}</span><ChevronDown size={18}/></button><AnimatePresence>{faq===i&&<motion.p initial={{height:0,opacity:0}} animate={{height:"auto",opacity:1}} exit={{height:0,opacity:0}}>{a}</motion.p>}</AnimatePresence></div>)}</div></section>
+
+      <section className="final section-pad"><div className="final-art"><img src={photos[5]}/><img src={photos[3]}/><img src={photos[1]}/></div><div className="final-copy"><div className="wordmark"><span className="mark">✳</span> sparkspace</div><h2>A good idea is just the start.<br/><em>Let’s make something of it.</em></h2><p>A fresh canvas. A few good people. Your next chapter.</p><form className="inline-form" onSubmit={submit}><input type="email" placeholder="Your email goes here" value={email} onChange={e=>setEmail(e.target.value)}/><DemoButton dark>Start creating</DemoButton></form></div></section>
+    </main>
+    <footer><div className="wordmark"><span className="mark">✳</span> sparkspace</div><p>A little space for your next big thing.</p><div className="footer-links"><a href="#why">Why Sparkspace</a><a href="#features">Explore the features</a><a href="#process">From idea to shared work</a><a href="#top">Back to top ↑</a></div><button className="pause" onClick={()=>setPaused(!paused)}>{paused?<Play size={14}/>:<Pause size={14}/>} {paused?"Play":"Pause"} animations</button></footer>
+    <AnimatePresence>{notice&&<motion.div className="toast" initial={{y:30,opacity:0}} animate={{y:0,opacity:1}} exit={{y:30,opacity:0}}>{notice}</motion.div>}</AnimatePresence>
+  </div>;
 }
